@@ -28,11 +28,6 @@ resource "azurerm_kubernetes_cluster" "default" {
     node_labels              = var.common_node_labels
   }
 
-  windows_profile {
-    admin_username = var.win_node_username
-    admin_password = random_password.password.result
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -57,30 +52,6 @@ resource "azurerm_kubernetes_cluster" "default" {
   }
 
   tags = local.common_tags
-}
-
-resource "azurerm_kubernetes_cluster_node_pool" "windows-agents" {
-  count                 = (var.max_node_count_windows > 0 || var.min_node_count_windows > 0) ? 1 : 0
-  name                  = "winvms"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.default.id
-  vm_size               = "Standard_DS3_v2"
-  mode                  = "User"
-
-  os_type               = "Windows"
-  enable_node_public_ip = false
-  vnet_subnet_id        = data.azurerm_subnet.aks_subnet.id
-  orchestrator_version  = var.kubernetes_version
-  max_pods              = 150
-  zones                 = ["1", "2", "3"]
-  enable_auto_scaling   = true
-  max_count             = var.max_node_count_windows
-  min_count             = var.min_node_count_windows
-  node_labels           = merge(var.common_node_labels, var.windows_node_labels)
-
-  tags = local.common_tags
-  depends_on = [
-    azurerm_kubernetes_cluster_node_pool.linux-agents,
-  ]
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "linux-agents" {
@@ -144,13 +115,4 @@ resource "azurerm_kubernetes_cluster_node_pool" "tc_linuxpool" {
   node_labels           = merge(var.common_node_labels, var.tc_agent_node_labels)
 
   tags                  = local.common_tags
-}
-
-resource "random_password" "password" {
-  length           = 16
-  special          = true
-  numeric          = true
-  upper            = true
-  lower            = true
-  override_special = "_%@"
 }
