@@ -1,0 +1,76 @@
+name: $(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  tags:
+    include:
+    - 'refs/tags/env-uk-*'
+    - 'refs/tags/env-us-*'
+    - 'refs/tags/infra-uk-*'
+    - 'refs/tags/infra-us-*'
+    - 'refs/tags/infra-ww-*'
+    - 'refs/tags/dev-uk-*'
+    - 'refs/tags/pre-uk-*'
+    - 'refs/tags/pro-uk-*'
+    - 'refs/tags/dev-us-*'
+    - 'refs/tags/pre-us-*'
+    - 'refs/tags/pro-us-*'
+    
+pool: Default
+
+variables:
+- name: countryCode
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/infra-us-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/env-us-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/dev-us'), startsWith(variables['Build.SourceBranch'], 'refs/tags/pre-us'), startsWith(variables['Build.SourceBranch'], 'refs/tags/pro-us')) }}:
+    value: US
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/infra-uk-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/env-uk-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/dev-uk'), startsWith(variables['Build.SourceBranch'], 'refs/tags/pre-uk'), startsWith(variables['Build.SourceBranch'], 'refs/tags/pro-uk')) }}:
+    value: UK
+  ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags/infra-ww-') }}:
+    value: WW
+
+- name: shortEnvironment  
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/dev-us-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/dev-uk-')) }}:
+    value: Dev
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/pre-us-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/pre-uk-')) }}:
+    value: Pre
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/pro-us-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/pro-uk-')) }}:
+    value: Pro
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/infra-us-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/infra-uk-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/infra-ww-')) }}:
+    value: Infra
+
+- name: longEnvironment
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/dev-us-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/dev-uk-')) }}:
+    value: Development
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/pre-us-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/pre-uk-')) }}:
+    value: PreProduction
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/pro-us-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/pro-uk-')) }}:
+    value: Production
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/tags/infra-us-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/infra-uk-'), startsWith(variables['Build.SourceBranch'], 'refs/tags/infra-ww-')) }}:
+    value: Infrastructure
+
+- name: terraformVersion
+  value: '1.3.7'
+- name: usingProjVarGroup
+  value: false 
+- name: projectVariableGroup
+  value: ""
+- name: terraformDirectory
+  value: ""
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: DevOps/ADO-Deploy-Tools      
+
+stages:
+- stage: ${{ variables.shortEnvironment }}_${{ variables.countryCode }}
+  displayName: ${{ variables.shortEnvironment }} ${{ variables.countryCode }}
+  jobs:
+    - template: v2/terraform/tf-aks-deploy.yaml@templates
+      parameters:        
+        countryCode: ${{ variables.countryCode }}
+        environment: ${{ variables.longEnvironment }}
+        terraformVersion: ${{ variables.terraformVersion }}
+        usingProjVarGroup: ${{ variables.usingProjVarGroup }}
+        projectVariableGroup: ${{ variables.projectVariableGroup }}
+        terraformDirectory: ${{ variables.terraformDirectory }}
+        isDR: false

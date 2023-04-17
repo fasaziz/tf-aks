@@ -1,0 +1,40 @@
+name: $(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+
+pool: Default
+variables:
+- name: countryCode
+  value: UK
+- name: statefilename
+  value: "aks-fixtures" 
+- name: terraformVersion
+  value: '1.3.7'
+- name: usingProjVarGroup
+  value: false 
+- name: projectVariableGroup
+  value: ""
+- name: terraformDirectory
+  value: ""
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: DevOps/ADO-Deploy-Tools
+
+stages :
+  - stage: ci_${{ variables.countryCode }}
+    displayName: CI ${{ variables.countryCode }}
+    jobs:
+      - template: v2/terraform/tf-aks-deploy.yaml@templates
+        parameters:
+          stateFileName: ${{ variables.statefilename }}
+          countryCode: ${{ variables.countryCode }}
+          environment: 'CI'
+          terraformVersion: ${{ variables.terraformVersion }}
+          usingProjVarGroup: ${{ variables.usingProjVarGroup }}
+          projectVariableGroup: ${{ variables.projectVariableGroup }}
+          terraformDirectory: ${{ variables.terraformDirectory }}
+          isDR: false
+          
