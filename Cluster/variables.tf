@@ -116,11 +116,6 @@ variable "system_node_labels" {
   default = {}
 }
 
-variable "windows_node_labels" {
-  type    = map(string)
-  default = {}
-}
-
 variable "linux_node_labels" {
   type    = map(string)
   default = {}
@@ -150,25 +145,6 @@ variable "acr_resourcegroup_name" {
   default     = "cot-k8s-playground"
 }
 
-variable "win_node_username" {
-  description = "name of the windows admin user"
-  type        = string
-  default     = "cot-admin"
-}
-
-variable "min_node_count_windows" {
-  description = "The minimum number of nodes for the Windows agents cluster"
-  type        = number
-  default     = 0
-  validation {
-    condition = (
-      var.min_node_count_windows >= 0 &&
-      var.min_node_count_windows <= 30
-    )
-    error_message = "Must be between 0 and 30."
-  }
-}
-
 variable "min_node_count_linux" {
   description = "The minimum number of nodes for the Linux agents cluster"
   type        = number
@@ -190,19 +166,6 @@ variable "min_node_count_datascience" {
     condition = (
       var.min_node_count_datascience >= 0 &&
       var.min_node_count_datascience <= 30
-    )
-    error_message = "Must be between 0 and 30."
-  }
-}
-
-variable "max_node_count_windows" {
-  description = "The maximum number of nodes for the Windows agents cluster"
-  type        = number
-  default     = 0
-  validation {
-    condition = (
-      var.max_node_count_windows >= 0 &&
-      var.max_node_count_windows <= 30
     )
     error_message = "Must be between 0 and 30."
   }
