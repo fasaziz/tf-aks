@@ -15,17 +15,20 @@ resource "azurerm_kubernetes_cluster" "default" {
   kubernetes_version      = var.kubernetes_version
 
   default_node_pool {
-    name                     = "agentpool"
-    node_count               = 2
-    max_pods                 = 150
-    vm_size                  = "Standard_DS2_v2"
-    zones                    = ["1", "2", "3"]
-    enable_node_public_ip    = true
-    node_public_ip_prefix_id = azurerm_public_ip_prefix.cluster_ip.id
-    tags                     = local.common_tags
-    vnet_subnet_id           = data.azurerm_subnet.aks_subnet.id
-    orchestrator_version     = var.kubernetes_version
-    node_labels              = var.common_node_labels
+    name                         = "systempool1"
+    min_count                    = 2
+    max_count                    = 6
+    enable_auto_scaling          = true
+    max_pods                     = 150
+    vm_size                      = "Standard_DS2_v2"
+    zones                        = ["1", "2", "3"]
+    enable_node_public_ip        = true
+    only_critical_addons_enabled = true
+    node_public_ip_prefix_id     = azurerm_public_ip_prefix.cluster_ip.id
+    tags                         = local.common_tags
+    vnet_subnet_id               = data.azurerm_subnet.aks_subnet.id
+    orchestrator_version         = var.kubernetes_version
+    node_labels                  = var.common_node_labels
   }
 
   identity {
